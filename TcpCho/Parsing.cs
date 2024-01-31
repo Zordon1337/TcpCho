@@ -26,8 +26,11 @@ namespace TcpCho
         }
         public bool IsLoginPacket(string logindata)
         {
-            if(logindata.Split('\n').Length <= 4)
+            var splitted = logindata.Split('\n');
+            if (splitted.Length <= 4)
             {
+                if (splitted[2].Length <= 0)
+                    return false;
                 if (logindata.Split('\n')[2].Split('|').Length >= 2)
                 {
                     return true;

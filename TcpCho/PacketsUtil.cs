@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
@@ -32,61 +31,61 @@ namespace TcpCho
             }
             return "notconnected"; // shouldn't happen!!!
         }
-        public void WriteUserStats(NetworkStream ns, bUserStats stats, BinaryWriter bw)
+        public void WriteUserStats(NetworkStream ns, bUserStats stats)
         {
             MemoryStream ms = new MemoryStream();
-            //bw.BaseStream.Position = 0;
-            bw.Write(stats.userId);
-            bw.Write((byte)stats.completeness);
-            bw.Write((byte)stats.status.status);
-            bw.Write(stats.status.beatmapUpdate);
-            if (!stats.status.beatmapUpdate)
-            {
-                return;
-            }
-            bw.Write(stats.status.statusText);
-            bw.Write(stats.status.beatmapChecksum);
-            bw.Write((ushort)stats.status.currentMods);
-            bw.Write((byte)stats.status.playMode);
-            bw.Write(stats.status.beatmapId);
+            BinaryWriter sw = new BinaryWriter(ms);
+            sw.Write(stats.userId);
+            sw.Write((byte)stats.completeness);
+            this.WriteStatusUpdate(ns, stats.status, sw);
             if (stats.completeness > Completeness.StatusOnly)
             {
-                bw.Write(stats.rankedScore);
-                bw.Write(stats.accuracy);
-                bw.Write(stats.playcount);
-                bw.Write(stats.totalScore);
-                bw.Write((ushort)stats.rank);
+                sw.Write(stats.rankedScore);
+                sw.Write(stats.accuracy);
+                sw.Write(stats.playcount);
+                sw.Write(stats.totalScore);
+                sw.Write((ushort)stats.rank);
             }
             if (stats.completeness == Completeness.Full)
             {
-                bw.Write(stats.username);
-                bw.Write(stats.avatarFilename);
-                bw.Write((byte)(stats.timezone + 24));
-                bw.Write(stats.location);
-                bw.Write((byte)2);
+                sw.Write(stats.username);
+                sw.Write(stats.avatarFilename);
+                sw.Write((byte)(stats.timezone + 24));
+                sw.Write(stats.location);
+                sw.Write((byte)2);
             }
-            bw.Flush();
+            sw.Flush();
             this.Write(ns, RequestType.Bancho_HandleOsuUpdate, false, ms);
         }
         public void WriteStatusUpdate(NetworkStream ns, bStatusUpdate status, BinaryWriter bw)
         {
-            
-            
+            bw.Write((byte)status.status);
+            bw.Write(status.beatmapUpdate);
+            if (!status.beatmapUpdate)
+            {
+                return;
+            }
+            bw.Write(status.statusText);
+            bw.Write(status.beatmapChecksum);
+            bw.Write((ushort)status.currentMods);
+            bw.Write((byte)status.playMode);
+            bw.Write(status.beatmapId);
+            bw.Flush();
         }
         public void SendVerMissmatch(BinaryWriter bw, NetworkStream ns)
         {
             MemoryStream ms = new MemoryStream();
-            bw.BaseStream.Position = 0;
-            bw.Write(-2);
-            bw.Flush();
+            BinaryWriter bw2 = new BinaryWriter(ms);
+            bw2.Write(-2);
+            bw2.Flush();
             this.Write(ns, RequestType.Bancho_LoginReply, false, ms);
         }
         public void SendBadPass(BinaryWriter bw, NetworkStream ns)
         {
             MemoryStream ms = new MemoryStream();
-            bw.BaseStream.Position = 0;
-            bw.Write(-1);
-            bw.Flush();
+            BinaryWriter bw2 = new BinaryWriter(ms);
+            bw2.Write(-1);
+            bw2.Flush();
             this.Write(ns, RequestType.Bancho_LoginReply, false, ms);
         }
     }
