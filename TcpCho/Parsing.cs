@@ -21,14 +21,14 @@ namespace TcpCho
         public string ParseVersion(string logindata)
         {
             string[] lines = logindata.Split('\n');
-            string version = lines[3].Split('|')[0];
+            string version = lines[2].Split('|')[0];
             return version;
         }
         public bool IsLoginPacket(string logindata)
         {
-            if(logindata.Split('\n').Length == 3)
+            if(logindata.Split('\n').Length <= 4)
             {
-                if (logindata.Split('\n')[3].Split('|').Length >= 2)
+                if (logindata.Split('\n')[2].Split('|').Length >= 2)
                 {
                     return true;
                 } else

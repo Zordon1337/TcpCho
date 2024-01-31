@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
@@ -34,10 +35,20 @@ namespace TcpCho
         public void WriteUserStats(NetworkStream ns, bUserStats stats, BinaryWriter bw)
         {
             MemoryStream ms = new MemoryStream();
-            bw.BaseStream.Position = 0;
+            //bw.BaseStream.Position = 0;
             bw.Write(stats.userId);
             bw.Write((byte)stats.completeness);
-            this.WriteStatusUpdate(ns, stats.status, bw);
+            bw.Write((byte)stats.status.status);
+            bw.Write(stats.status.beatmapUpdate);
+            if (!stats.status.beatmapUpdate)
+            {
+                return;
+            }
+            bw.Write(stats.status.statusText);
+            bw.Write(stats.status.beatmapChecksum);
+            bw.Write((ushort)stats.status.currentMods);
+            bw.Write((byte)stats.status.playMode);
+            bw.Write(stats.status.beatmapId);
             if (stats.completeness > Completeness.StatusOnly)
             {
                 bw.Write(stats.rankedScore);
@@ -59,17 +70,8 @@ namespace TcpCho
         }
         public void WriteStatusUpdate(NetworkStream ns, bStatusUpdate status, BinaryWriter bw)
         {
-            bw.Write((byte)status.status);
-            bw.Write(status.beatmapUpdate);
-            if (!status.beatmapUpdate)
-            {
-                return;
-            }
-            bw.Write(status.statusText);
-            bw.Write(status.beatmapChecksum);
-            bw.Write((ushort)status.currentMods);
-            bw.Write((byte)status.playMode);
-            bw.Write(status.beatmapId);
+            
+            
         }
         public void SendVerMissmatch(BinaryWriter bw, NetworkStream ns)
         {
