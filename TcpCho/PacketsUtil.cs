@@ -37,7 +37,7 @@ namespace TcpCho
             bw.BaseStream.Position = 0;
             bw.Write(stats.userId);
             bw.Write((byte)stats.completeness);
-            stats.status.WriteToStream(bw);
+            this.WriteStatusUpdate(ns, stats.status, bw);
             if (stats.completeness > Completeness.StatusOnly)
             {
                 bw.Write(stats.rankedScore);
@@ -56,6 +56,20 @@ namespace TcpCho
             }
             bw.Flush();
             this.Write(ns, RequestType.Bancho_HandleOsuUpdate, false, ms);
+        }
+        public void WriteStatusUpdate(NetworkStream ns, bStatusUpdate status, BinaryWriter bw)
+        {
+            bw.Write((byte)status.status);
+            bw.Write(status.beatmapUpdate);
+            if (!status.beatmapUpdate)
+            {
+                return;
+            }
+            bw.Write(status.statusText);
+            bw.Write(status.beatmapChecksum);
+            bw.Write((ushort)status.currentMods);
+            bw.Write((byte)status.playMode);
+            bw.Write(status.beatmapId);
         }
         public void SendVerMissmatch(BinaryWriter bw, NetworkStream ns)
         {

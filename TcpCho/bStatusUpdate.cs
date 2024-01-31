@@ -43,25 +43,7 @@ namespace TcpCho
             this.beatmapId = sr.ReadInt32();
         }
 
-        public void ReadFromStream(BinaryReader sr)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void WriteToStream(BinaryWriter sw)
-        {
-            sw.Write((byte)this.status);
-            sw.Write(this.beatmapUpdate);
-            if (!this.beatmapUpdate)
-            {
-                return;
-            }
-            sw.Write(this.statusText);
-            sw.Write(this.beatmapChecksum);
-            sw.Write((ushort)this.currentMods);
-            sw.Write((byte)this.playMode);
-            sw.Write(this.beatmapId);
-        }
+        
 
         public string beatmapChecksum;
 
