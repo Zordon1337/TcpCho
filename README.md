@@ -2,9 +2,17 @@
 
 ## W.I.P Tcp Bancho for osu! b504
 
-Current Features:
+### Current Features:
 ```
 Basic SDK
 Basic Login(Login With any credentials)
 Version Checking(you can login only with b504)
+Osu bug reporting handle
+Announcements
 ```
+
+### Credits:
+
+<a href="https://github.com/Zordon1337">Zordon1337</a> - For creating this unstable crappy server<br/>
+<a href="https://github.com/Beyley">Beyley</a> - For his Writer and Reader class
+
