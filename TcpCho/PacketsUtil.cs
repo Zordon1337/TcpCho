@@ -6,38 +6,61 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TcpCho
 {
     class PacketsUtil
     {
-        public void Write(NetworkStream ns, RequestType PacketID, bool compression, MemoryStream ms)
+        public void Write(TcpClient client, RequestType PacketID, bool compression, MemoryStream ms)
         {
-            BinaryWriter bw = new BinaryWriter(ns);
+            BinaryWriter bw = new BinaryWriter(client.GetStream());
             bw.Write((ushort)PacketID);
             bw.Write(compression);
             bw.Write((uint)ms.Length);
             bw.Write(ms.ToArray());
             bw.Flush();
         }
-        public string ReadStringFromStream(NetworkStream ns, TcpClient client)
+        public string ReadStringFromStream(TcpClient client)
         {
-            byte[] buffer = new byte[4092];
-            while(client.Connected)
+            byte[] buffer = new byte[4096];
+            var stream = client.GetStream();
+            if (stream.DataAvailable && stream.CanRead)
             {
-                int data = ns.Read(buffer, 0, buffer.Length);
-                return Encoding.UTF8.GetString(buffer, 0, data);
+                int bytesreceived = client.GetStream().Read(buffer, 0, buffer.Length);
+                
+                return Encoding.UTF8.GetString(buffer,0, bytesreceived);
             }
-            return "notconnected"; // shouldn't happen!!!
+            Console.WriteLine($"{stream.DataAvailable} && {stream.CanRead}");
+            return ReadStringFromStream(client); // :trolley:, but actually it shouldn't happen!!!
+            
         }
-        public void WriteUserStats(NetworkStream ns, bUserStats stats)
+        public int GetPacketID(NetworkStream ns)
+        {
+            BinaryReader br = new BinaryReader(ns);
+
+            try
+            {
+                return br.ReadInt16();
+            }
+            catch (Exception ex)
+            {
+
+
+                //throw(new Exception("why it doesn't work!1111!!!!"));
+                return GetPacketID(ns); // there is 100% something wrong with me and especially my brain(that doesn't exist)
+            }
+        }
+
+        public void WriteUserStats(TcpClient client, bUserStats stats)
         {
             MemoryStream ms = new MemoryStream();
             BinaryWriter sw = new BinaryWriter(ms);
+            NetworkStream ns = client.GetStream();
             sw.Write(stats.userId);
             sw.Write((byte)stats.completeness);
-            this.WriteStatusUpdate(ns, stats.status, sw);
+            this.WriteStatusUpdate(stats.status,sw);
             if (stats.completeness > Completeness.StatusOnly)
             {
                 sw.Write(stats.rankedScore);
@@ -55,9 +78,9 @@ namespace TcpCho
                 sw.Write((byte)2);
             }
             sw.Flush();
-            this.Write(ns, RequestType.Bancho_HandleOsuUpdate, false, ms);
+            this.Write(client, RequestType.Bancho_HandleOsuUpdate, false, ms);
         }
-        public void WriteStatusUpdate(NetworkStream ns, bStatusUpdate status, BinaryWriter bw)
+        public void WriteStatusUpdate(bStatusUpdate status, BinaryWriter bw)
         {
             bw.Write((byte)status.status);
             bw.Write(status.beatmapUpdate);
@@ -72,21 +95,23 @@ namespace TcpCho
             bw.Write(status.beatmapId);
             bw.Flush();
         }
-        public void SendVerMissmatch(BinaryWriter bw, NetworkStream ns)
+        public void SendVerMissmatch(TcpClient client, BinaryWriter bw)
         {
             MemoryStream ms = new MemoryStream();
             BinaryWriter bw2 = new BinaryWriter(ms);
+            NetworkStream ns = client.GetStream();
             bw2.Write(-2);
             bw2.Flush();
-            this.Write(ns, RequestType.Bancho_LoginReply, false, ms);
+            this.Write(client, RequestType.Bancho_LoginReply, false, ms);
         }
-        public void SendBadPass(BinaryWriter bw, NetworkStream ns)
+        public void SendBadPass(TcpClient client, BinaryWriter bw)
         {
             MemoryStream ms = new MemoryStream();
             BinaryWriter bw2 = new BinaryWriter(ms);
+            
             bw2.Write(-1);
             bw2.Flush();
-            this.Write(ns, RequestType.Bancho_LoginReply, false, ms);
+            this.Write(client, RequestType.Bancho_LoginReply, false, ms);
         }
     }
 }

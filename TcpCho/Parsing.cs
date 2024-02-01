@@ -15,31 +15,51 @@ namespace TcpCho
         }
         public string ParsePassword(string logindata)
         {
-            string[] lines = logindata.Split('\n');
-            return lines[1];
+            try
+            {
+                string[] lines = logindata.Split('\n');
+                return lines[1];
+            } catch
+            {
+                return "error";
+            }
         }
         public string ParseVersion(string logindata)
         {
-            string[] lines = logindata.Split('\n');
-            string version = lines[2].Split('|')[0];
-            return version;
+            try
+            {
+                string[] lines = logindata.Split('\n');
+                string version = lines[2].Split('|')[0];
+                return version;
+            } catch
+            {
+                return "error";
+            }
+            
         }
         public bool IsLoginPacket(string logindata)
         {
             var splitted = logindata.Split('\n');
-            if (splitted.Length <= 4)
+            try
             {
-                if (splitted[2].Length <= 0)
-                    return false;
-                if (logindata.Split('\n')[2].Split('|').Length >= 2)
+                if (splitted.Length >= 3)
                 {
-                    return true;
-                } else
+
+                    if (logindata.Split('\n')[2].Split('|').Length >= 2)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
                 {
                     return false;
                 }
-            } else
-            {
+            } catch(Exception ex) 
+            { 
                 return false;
             }
         }

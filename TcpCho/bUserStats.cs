@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TcpCho
 {
-    internal class bUserStats
+    public class bUserStats
     {
         public bUserStats(int userId, string username, long rankedScore, float accuracy, int playcount, long totalScore, int rank, string avatarFilename, bStatusUpdate status, int timezone, string location, Permissions permission)
         {
