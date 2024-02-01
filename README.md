@@ -14,5 +14,5 @@ Announcements
 ### Credits:
 
 <a href="https://github.com/Zordon1337">Zordon1337</a> - For creating this unstable crappy server<br/>
-<a href="https://github.com/Beyley">Beyley</a> - For his Writer and Reader class
+<a href="https://github.com/Beyley">Beyley</a> - For Writer and Reader class
 
