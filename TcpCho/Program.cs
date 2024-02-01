@@ -10,6 +10,34 @@ using System.Threading.Tasks;
 
 namespace TcpCho
 {
+    // https://github.com/Beyley/osu-b497-server/blob/master/osu-server/BanchoSerializer.cs#L41
+    public class Writer : BinaryWriter
+    {
+        public Writer(Stream s) : base(s) { }
+        public override void Write(string value)
+        {
+            if (value.Length == 0)
+            {
+                this.Write(new byte[] { 0x00 });
+                return;
+            }
+
+            this.Write((byte)11);
+            base.Write(value);
+        }
+    }
+    // https://github.com/Beyley/osu-b497-server/blob/master/osu-server/BanchoSerializer.cs#L6
+    public class Reader : BinaryReader
+    {
+        public Reader(Stream stream) : base(stream) { }
+        public override string ReadString()
+        {
+            byte type = this.ReadByte();
+            return type == 11
+                ? base.ReadString()
+                : null;
+        }
+    }
     public class User
     {
         public User(string Username, string Password, bUserStats userstats, TcpClient client, NetworkStream stream)
@@ -19,6 +47,7 @@ namespace TcpCho
             this.UserStats = userstats;
             this.Client = client;
             this.Stream = stream;
+            
         }
         public string Username { get; set; }
         public string Password { get; set; }
@@ -38,18 +67,22 @@ namespace TcpCho
             tcp.Start();
             NetworkStream stream;
             new Thread(CheckIfConnectionAlive).Start();
+            new Thread(PingThread).Start();
+            Console.ForegroundColor = ConsoleColor.Green; 
             while (true)
             {
                 
                 TcpClient client = tcp.AcceptTcpClient();
                 stream = client.GetStream();
                 MemoryStream ms = new MemoryStream();
-                BinaryWriter sw = new BinaryWriter(ms);
+                Writer sw = new Writer(ms);
+                BinaryReader sr = new BinaryReader(stream);
                 string userdata = "";
                 userdata = Packet.ReadStringFromStream(client);
-                Thread.Sleep(500);
+                
                 //Console.WriteLine($"Got Packet {(RequestType)Packet.GetPacketID(stream, client)}");
-                Console.Write(userdata);
+                //Console.Write(userdata);
+                
                 if(Parsing.IsLoginPacket(userdata)) 
                 {
                     string username = Parsing.ParseUsername(userdata);
@@ -89,14 +122,14 @@ namespace TcpCho
                             "PL", // player location
                             Permissions.BAT // name says itself
                             );
-
                         User user = new User(username, password, stats, client,stream);
-
                         stats.completeness = Completeness.Statistics;
-
                         Packet.WriteUserStats(client, stats);
                         users.Add(user);
+                        Packet.WriteChannelJoinSuccess(user, "#osu");
+                        Packet.Annouce(user, $"Welcome {user.Username} to TcpCho");
                         new Thread(() => PlayerThread(user)).Start();
+                        Console.WriteLine($"User {username} just logged in");
                     }
                     
                 } else
@@ -120,20 +153,49 @@ namespace TcpCho
                     {
                         Thread.Sleep(100);
                     }
-                    RequestType PacketID = (RequestType)Packet.GetPacketID(ns);
-                    Console.WriteLine(PacketID);
-                    switch(PacketID)
+                    int PacketID = Packet.GetPacketID(ns);
+                    Reader sr = new Reader(ns);
+                    //Console.WriteLine((RequestType)PacketID);
+                    if( PacketID <= 76 )
                     {
-                        case RequestType.Osu_SendUserStatus:
-                            {
-                                break;
-                            }
-                        
-                        default:
-                            {
-                                break;
-                            }
+                        Console.WriteLine($"Received packet {(RequestType)PacketID} sent by {user.Username}");
+                        switch ((RequestType)PacketID)
+                        {
+                            case RequestType.Osu_RequestStatusUpdate:
+                                {
+
+                                    break;
+                                }
+                            case RequestType.Osu_SendUserStatus:
+                                {
+                                    
+                                    break;
+                                }
+                            case RequestType.Osu_SendIrcMessage:
+                                {
+                                    IrcMessage msg = new IrcMessage();
+                                    msg.ReadFromStream(user);
+
+                                    Console.WriteLine(msg.author);
+                                    Console.WriteLine(msg.message);
+                                    Console.WriteLine(msg.receiver);
+                                    break;
+                                }
+                            case RequestType.Osu_ErrorReport:
+                                {
+                                    Console.WriteLine($"osu reported bug: {sr.ReadString()}");
+                                    break;
+                                }
+                            default:
+                                {
+                                    break;
+                                }
+                        }
+                    } else
+                    {
+                       // Console.WriteLine(Packet.ReadStringFromStream(user.Client));
                     }
+                    
                 }
             }
         }
@@ -149,6 +211,21 @@ namespace TcpCho
                     if (!client.Client.Connected)
                     {
                         users.RemoveAt(i);
+                    }
+                }
+            }
+        }
+        private static void PingThread()
+        {
+            while (true)
+            {
+                Thread.Sleep(5000);
+                for (int i = users.Count - 1; i >= 0; i--)
+                {
+                    var client = users[i];
+                    if (client.Client.Connected)
+                    {
+                        Packet.WriteEmptyPacket(client.Client, RequestType.Bancho_Ping);
                     }
                 }
             }
