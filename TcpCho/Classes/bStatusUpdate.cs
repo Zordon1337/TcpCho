@@ -29,18 +29,27 @@ namespace TcpCho
 
         public bStatusUpdate(Stream s)
         {
-            BinaryReader sr = new BinaryReader(s);
-            this.status = (bStatus)sr.ReadByte();
-            this.beatmapUpdate = sr.ReadBoolean();
-            if (!this.beatmapUpdate)
+            if(s.CanRead)
             {
-                return;
+                try
+                {
+                    BinaryReader sr = new BinaryReader(s);
+                    this.status = (bStatus)sr.ReadByte();
+                    this.beatmapUpdate = sr.ReadBoolean();
+                    if (!this.beatmapUpdate)
+                    {
+                        return;
+                    }
+                    this.statusText = sr.ReadString();
+                    this.beatmapChecksum = sr.ReadString();
+                    this.currentMods = (Mods)sr.ReadUInt16();
+                    this.playMode = (PlayModes)sr.ReadByte();
+                    this.beatmapId = sr.ReadInt32();
+                } catch (Exception e)
+                {
+
+                }
             }
-            this.statusText = sr.ReadString();
-            this.beatmapChecksum = sr.ReadString();
-            this.currentMods = (Mods)sr.ReadUInt16();
-            this.playMode = (PlayModes)sr.ReadByte();
-            this.beatmapId = sr.ReadInt32();
         }
 
         

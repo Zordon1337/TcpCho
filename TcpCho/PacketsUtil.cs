@@ -40,20 +40,32 @@ namespace TcpCho
     {
         public void Write(TcpClient client, RequestType PacketID, bool compression, MemoryStream ms)
         {
-            BinaryWriter bw = new BinaryWriter(client.GetStream());
-            bw.Write((ushort)PacketID);
-            bw.Write(compression);
-            bw.Write((uint)ms.Length);
-            bw.Write(ms.ToArray());
-            bw.Flush();
+            if(client.Connected)
+            {
+                BinaryWriter bw = new BinaryWriter(client.GetStream());
+                bw.Write((ushort)PacketID);
+                bw.Write(compression);
+                bw.Write((uint)ms.Length);
+                bw.Write(ms.ToArray());
+                bw.Flush();
+            }
         }
         public void WriteEmptyPacket(TcpClient client, RequestType PacketID)
         {
-            BinaryWriter bw = new BinaryWriter(client.GetStream());
-            bw.Write((ushort)PacketID);
-            bw.Write(false);
-            bw.Write((uint)0);
-            bw.Flush();
+            if(client.Connected)
+            {
+                try
+                {
+                    BinaryWriter bw = new BinaryWriter(client.GetStream());
+                    bw.Write((ushort)PacketID);
+                    bw.Write(false);
+                    bw.Write((uint)0);
+                    bw.Flush();
+                } catch
+                {
+
+                }
+            }
         }
         public string ReadStringFromStream(TcpClient client)
         {
@@ -172,6 +184,8 @@ namespace TcpCho
             bw.Write(status.beatmapId);
             bw.Flush();
         }
+        
+
         public void SendVerMissmatch(TcpClient client, BinaryWriter bw)
         {
             MemoryStream ms = new MemoryStream();

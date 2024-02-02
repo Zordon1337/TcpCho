@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TcpCho.Classes;
 
 namespace TcpCho
 {
@@ -60,7 +61,7 @@ namespace TcpCho
     {
         private static PacketsUtil Packet = new PacketsUtil();
         private static Parsing Parsing = new Parsing();
-        private static List<User> users = new List<User>();
+        public static List<User> users = new List<User>();
         static void Main(string[] args)
         {
             TcpListener tcp = new TcpListener(IPAddress.Parse("127.0.0.1"), 13381);
@@ -68,6 +69,7 @@ namespace TcpCho
             NetworkStream stream;
             new Thread(CheckIfConnectionAlive).Start();
             new Thread(PingThread).Start();
+            new Thread(Webserver.Init).Start();
             Console.ForegroundColor = ConsoleColor.Green; 
             while (true)
             {
@@ -158,9 +160,18 @@ namespace TcpCho
                     //Console.WriteLine((RequestType)PacketID);
                     if( PacketID <= 76 )
                     {
-                        Console.WriteLine($"Received packet {(RequestType)PacketID} sent by {user.Username}");
+                        string username = user.Username;
+                        Console.WriteLine($"Received packet {(RequestType)PacketID} sent by {username}");
                         switch ((RequestType)PacketID)
                         {
+                            /*case RequestType.Osu_Exit:
+                                {
+                                    Console.WriteLine($"User {username} logged out");
+                                    user.Client.Close();
+                                    users.Remove(user);
+                                    
+                                    break;
+                                }*/ // this causes problems for some reason, gonna check it some day
                             case RequestType.Osu_RequestStatusUpdate:
                                 {
 
@@ -168,7 +179,13 @@ namespace TcpCho
                                 }
                             case RequestType.Osu_SendUserStatus:
                                 {
-                                    
+                                    bStatusUpdate stats = new bStatusUpdate(user.Stream);
+                                    Console.WriteLine(stats.beatmapChecksum);
+                                    Console.WriteLine(stats.currentMods);
+                                    Console.WriteLine(stats.playMode);
+                                    Console.WriteLine(stats.currentMods);
+                                    Console.WriteLine(stats.status);
+                                    Console.WriteLine(stats.statusText);
                                     break;
                                 }
                             case RequestType.Osu_SendIrcMessage:
@@ -179,6 +196,16 @@ namespace TcpCho
                                     Console.WriteLine(msg.author);
                                     Console.WriteLine(msg.message);
                                     Console.WriteLine(msg.receiver);
+                                    break;
+                                }
+                            case RequestType.Osu_MatchCreate:
+                                {
+                                    MemoryStream ms = new MemoryStream();
+                                    Writer writer = new Writer(ms);
+                                    bMatch match = new bMatch(ns);
+                                    Console.WriteLine(match.ToString());
+                                    match.WriteToStream(writer);
+                                    Packet.Write(user.Client, RequestType.Bancho_MatchNew, false, ms);
                                     break;
                                 }
                             case RequestType.Osu_ErrorReport:
