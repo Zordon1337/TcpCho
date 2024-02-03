@@ -9,6 +9,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TcpCho.Classes;
 
 namespace TcpCho
 {
@@ -55,18 +56,25 @@ namespace TcpCho
 
         public string target;
     }
+    
     class PacketsUtil
     {
         public void Write(TcpClient client, RequestType PacketID, bool compression, MemoryStream ms)
         {
-            if(client.Connected)
+            try
             {
-                BinaryWriter bw = new BinaryWriter(client.GetStream());
-                bw.Write((ushort)PacketID);
-                bw.Write(compression);
-                bw.Write((uint)ms.Length);
-                bw.Write(ms.ToArray());
-                bw.Flush();
+                if (client.Connected)
+                {
+                    BinaryWriter bw = new BinaryWriter(client.GetStream());
+                    bw.Write((ushort)PacketID);
+                    bw.Write(compression);
+                    bw.Write((uint)ms.Length);
+                    bw.Write(ms.ToArray());
+                    bw.Flush();
+                }
+            } catch
+            {
+
             }
         }
         public void WriteEmptyPacket(TcpClient client, RequestType PacketID)
@@ -205,7 +213,7 @@ namespace TcpCho
         }
         
 
-        public void SendVerMissmatch(TcpClient client, BinaryWriter bw)
+        /*public void SendVerMissmatch(TcpClient client, BinaryWriter bw)
         {
             MemoryStream ms = new MemoryStream();
             BinaryWriter bw2 = new BinaryWriter(ms);
@@ -221,6 +229,16 @@ namespace TcpCho
             
             bw2.Write(-1);
             bw2.Flush();
+            this.Write(client, RequestType.Bancho_LoginReply, false, ms);
+        }*/
+        
+        public void SendLoginReply(int id, TcpClient client)
+        {
+            MemoryStream ms = new MemoryStream();
+            Writer writer = new Writer(ms);
+
+            writer.Write(id);
+            writer.Flush();
             this.Write(client, RequestType.Bancho_LoginReply, false, ms);
         }
     }

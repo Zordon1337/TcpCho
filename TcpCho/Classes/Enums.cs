@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace TcpCho
 {
+    public class LoginErrors
+    {
+        public const int ERR_VER_MISSMATCH = -2;
+        public const int ERR_VER_BADPASS = -1;
+    }
+
     public enum Permissions
     {
         None = 0,

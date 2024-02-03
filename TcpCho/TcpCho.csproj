@@ -55,6 +55,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -66,15 +68,30 @@
     <Compile Include="Classes\bMatch.cs" />
     <Compile Include="Classes\bStatusUpdate.cs" />
     <Compile Include="Classes\Enums.cs" />
+    <Compile Include="Classes\User.cs" />
+    <Compile Include="Gui\Panel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Gui\Panel.Designer.cs">
+      <DependentUpon>Panel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Handlers\HandleLogin.cs" />
+    <Compile Include="Handlers\HandlePacket.cs" />
     <Compile Include="PacketsUtil.cs" />
     <Compile Include="Parsing.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Classes\bUserStats.cs" />
+    <Compile Include="Services\Bancho.cs" />
     <Compile Include="Services\Webserver.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Gui\Panel.resx">
+      <DependentUpon>Panel.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

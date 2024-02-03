@@ -51,8 +51,21 @@ namespace TcpCho
                 }
             }
         }
+        public void WriteToStream(Writer sw)
+        {
+            sw.Write((byte)this.status);
+            sw.Write(this.beatmapUpdate);
+            if (!this.beatmapUpdate)
+            {
+                return;
+            }
+            sw.Write(this.statusText);
+            sw.Write(this.beatmapChecksum);
+            sw.Write((ushort)this.currentMods);
+            sw.Write((byte)this.playMode);
+            sw.Write(this.beatmapId);
+        }
 
-        
 
         public string beatmapChecksum;
 
