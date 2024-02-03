@@ -196,6 +196,41 @@ namespace TcpCho
             sw.Flush();
             this.Write(client, RequestType.Bancho_HandleOsuUpdate, false, ms);
         }
+        
+        public void WriteClientUpdate(TcpClient client, bStatusUpdate status, bUserStats stats)
+        {
+            try
+            {
+                MemoryStream ms = new MemoryStream();
+                BinaryWriter sw = new BinaryWriter(ms);
+                NetworkStream ns = client.GetStream();
+                stats.completeness = Completeness.StatusOnly;
+                sw.Write(stats.userId);
+                sw.Write((byte)stats.completeness);
+                this.WriteStatusUpdate(stats.status, sw);
+                if (stats.completeness > Completeness.StatusOnly)
+                {
+                    sw.Write(stats.rankedScore);
+                    sw.Write(stats.accuracy);
+                    sw.Write(stats.playcount);
+                    sw.Write(stats.totalScore);
+                    sw.Write((ushort)stats.rank);
+                }
+                if (stats.completeness == Completeness.Full)
+                {
+                    sw.Write(stats.username);
+                    sw.Write(stats.avatarFilename);
+                    sw.Write((byte)(stats.timezone + 24));
+                    sw.Write(stats.location);
+                    sw.Write((byte)2);
+                }
+                sw.Flush();
+                this.Write(client, RequestType.Bancho_HandleOsuUpdate, false, ms);
+            } catch
+            {
+
+            }
+        }
         public void WriteStatusUpdate(bStatusUpdate status, BinaryWriter bw)
         {
             bw.Write((byte)status.status);

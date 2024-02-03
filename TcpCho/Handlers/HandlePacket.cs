@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using TcpCho.Classes;
 using TcpCho.Services;
 
@@ -33,11 +34,13 @@ namespace TcpCho.Handlers
                 case RequestType.Osu_SendUserStatus:
                     {
                         bStatusUpdate stats = new bStatusUpdate(user.Stream);
-                        foreach (var client in Bancho.users)
+                        
+                        foreach (var client in Storage.users)
                         {
                             MemoryStream ms = new MemoryStream();
                             Writer w = new Writer(ms);
-                            stats.WriteToStream(w);
+                            //Console.WriteLine(stats.ToString());
+                            Packet.WriteClientUpdate(client.Client, stats, user.UserStats);
                             Packet.Write(client.Client, RequestType.Bancho_HandleOsuUpdate, false, ms);
                         }
                         break;
@@ -52,6 +55,21 @@ namespace TcpCho.Handlers
                         Console.WriteLine(msg.target);*/
                         break;
                     }
+                case RequestType.Osu_MatchJoin:
+                    {
+                        bMatch match = Utils.Matches.FindById(sr.ReadInt32());
+                        if(match != null)
+                        {
+                            MemoryStream ms = new MemoryStream();
+                            Writer w = new Writer(ms);
+                            if (user.curmatch == null)
+                                Utils.Matches.SendMatchJoinSucess(user, match);
+                            else
+                                Utils.Matches.SendMatchJoinFail(user);
+
+                        }
+                        break;
+                    }
                 case RequestType.Osu_MatchCreate:
                     {
                         MemoryStream ms = new MemoryStream();
@@ -60,8 +78,7 @@ namespace TcpCho.Handlers
                         Console.WriteLine(match.gameName);
                         Console.WriteLine(match.hostId);
                         Console.WriteLine(match.beatmapName);
-                        //match.WriteToStream(writer);
-                        Packet.Write(user.Client, RequestType.Bancho_MatchJoinSuccess, false, ms);
+                        Utils.Matches.SendMatchJoinSucess(user, match);
                         break;
                     }
                 case RequestType.Osu_LobbyPart:

@@ -29,6 +29,7 @@ namespace TcpCho
         {
             
         }
+        
 
         public bUserStats(Stream s, bool forceFull)
         {

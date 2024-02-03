@@ -64,9 +64,20 @@ namespace TcpCho
             sw.Write((ushort)this.currentMods);
             sw.Write((byte)this.playMode);
             sw.Write(this.beatmapId);
+            sw.Flush();
         }
 
-
+        public override string ToString()
+        {
+            return $@"
+{beatmapChecksum}
+{beatmapId}
+{beatmapUpdate}
+{currentMods}
+{playMode}
+{status}
+{statusText}";
+        }
         public string beatmapChecksum;
 
         public int beatmapId;

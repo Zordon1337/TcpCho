@@ -16,7 +16,7 @@ namespace TcpCho.Services
     {
         private static PacketsUtil Packet = new PacketsUtil();
         private static Parsing Parsing = new Parsing();
-        public static List<User> users = new List<User>();
+        
         const int PORT = 13381;
         const string IP = "127.0.0.1";
         public static void Init(string[] args)
@@ -98,18 +98,11 @@ namespace TcpCho.Services
                     int PacketID = Packet.GetPacketID(ns);
                     Reader sr = new Reader(ns);
                     //Console.WriteLine((RequestType)PacketID);
-                    if (PacketID <= 76)
+                    if (PacketID <= 77)
                     {
                         string username = user.Username;
-                        if (PacketID < 0)
-                        {
-                            Console.WriteLine(sr.Read());
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Received packet {(RequestType)PacketID} sent by {username}");
-                            Handlers.HandlePacket.Handle(user, (RequestType)PacketID, sr);
-                        }
+                        Console.WriteLine($"Received packet {(RequestType)PacketID} sent by {username}");
+                        Handlers.HandlePacket.Handle(user, (RequestType)PacketID, sr);
 
                     }
                     else
@@ -126,12 +119,12 @@ namespace TcpCho.Services
             {
                 Thread.Sleep(500); // we don't want our CPU to explode
 
-                for (int i = users.Count - 1; i >= 0; i--)
+                for (int i = Storage.users.Count - 1; i >= 0; i--)
                 {
-                    var client = users[i];
+                    var client = Storage.users[i];
                     if (!client.Client.Connected)
                     {
-                        users.RemoveAt(i);
+                        Storage.users.RemoveAt(i);
                     }
                 }
             }
@@ -141,9 +134,9 @@ namespace TcpCho.Services
             while (true)
             {
                 Thread.Sleep(5000);
-                for (int i = users.Count - 1; i >= 0; i--)
+                for (int i = Storage.users.Count - 1; i >= 0; i--)
                 {
-                    var client = users[i];
+                    var client = Storage.users[i];
                     if (client.Client.Connected)
                     {
                         Packet.WriteEmptyPacket(client.Client, RequestType.Bancho_Ping);

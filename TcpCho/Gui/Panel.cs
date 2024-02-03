@@ -45,7 +45,7 @@ namespace TcpCho.Gui
                 {
                     Thread.Sleep(500);
                     string ids = "Connected Users ID: ";
-                    foreach (var user in Bancho.users)
+                    foreach (var user in Storage.users)
                     {
                         ids += $"{user.UserStats.userId}({user.UserStats.username}), ";
                     }
@@ -58,7 +58,7 @@ namespace TcpCho.Gui
 
                     CU.Invoke((MethodInvoker)delegate
                     {
-                        CU.Text = $"Connected Users: {Bancho.users.Count}";
+                        CU.Text = $"Connected Users: {Storage.users.Count}";
                     });
                 }
             });
@@ -74,7 +74,7 @@ namespace TcpCho.Gui
         {
             RequestType Packet = (RequestType)int.Parse(PacketID3.Text);
             int userid = int.Parse(Target2.Text);
-            foreach(var user in Bancho.users)
+            foreach(var user in Storage.users)
             {
                 if(user.UserStats.userId == userid)
                 {
@@ -88,7 +88,7 @@ namespace TcpCho.Gui
             RequestType Packet = (RequestType)int.Parse(PacketID2.Text);
             int userid = int.Parse(Target1.Text);
             string data = STD2.Text;
-            foreach (var user in Bancho.users)
+            foreach (var user in Storage.users)
             {
                 if (user.UserStats.userId == userid)
                 {
@@ -104,7 +104,7 @@ namespace TcpCho.Gui
         private void SEP1_Click(object sender, EventArgs e)
         {
             RequestType Packet = (RequestType)int.Parse(textBox3.Text);
-            foreach (var user in Bancho.users)
+            foreach (var user in Storage.users)
             {
                 packet.WriteEmptyPacket(user.Client, Packet);
             }
@@ -114,7 +114,7 @@ namespace TcpCho.Gui
         {
             RequestType Packet = (RequestType)int.Parse(PacketID2.Text);
             string data = STD1.Text;
-            foreach (var user in Bancho.users)
+            foreach (var user in Storage.users)
             {
                 MemoryStream ms = new MemoryStream();
                 Writer w = new Writer(ms);

@@ -54,10 +54,10 @@ namespace TcpCho.Handlers
                     "PL", // player location
                 Permissions.BAT // name says itself
                     );
-                User user = new User(username, password, stats, client, client.GetStream());
+                User user = new User(username, password, stats, client, client.GetStream(),null);
                 stats.completeness = Completeness.Statistics;
                 Packet.WriteUserStats(client, stats);
-                Bancho.users.Add(user);
+                Storage.users.Add(user);
                 Packet.WriteChannelJoinSuccess(user, "#osu");
                 Packet.WriteChannelJoinSuccess(user, "#global");
                 Packet.WriteChannelJoinSuccess(user, $"#{user.UserStats.username}-r"); // not sure if required

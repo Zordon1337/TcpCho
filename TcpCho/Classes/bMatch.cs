@@ -125,6 +125,7 @@ namespace TcpCho.Classes
             }
             sw.Write(this.hostId);
             sw.Write((byte)this.playMode);
+            sw.Flush();
         }
 
         private static byte bools2byte(bool[] bools)
