@@ -9,6 +9,7 @@ Basic Login(Login With any credentials)
 Version Checking(you can login only with b504)
 Osu bug reporting handle
 Announcements
+Basic admin GUI(windows only)
 ```
 
 ### Credits:
