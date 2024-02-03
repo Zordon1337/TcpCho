@@ -13,6 +13,8 @@ namespace TcpCho
 {
     public class Webserver
     {
+        /*
+         * No longer used after 03-02-2024 update
         public static bool IsAdministrator()
         {
             var identity = WindowsIdentity.GetCurrent();
@@ -24,13 +26,13 @@ namespace TcpCho
             HTTP http = new HTTP();
             PacketsUtil packet = new PacketsUtil();
 
-            /*if(IsAdministrator())
+            if(IsAdministrator())
             {
                 new Thread(() => http.ListenMA(new string[] { "http://127.0.0.1:4200/", "http://localhost:4200/", "http://localhost:80/", "http://127.0.0.1:80/" })).Start();
             } else
             {
                 new Thread(() => http.ListenMA(new string[] { "http://127.0.0.1:4200/", "http://localhost:4200/" })).Start();
-            }*/
+            }
             new Thread(() => http.ListenMA(new string[] { "http://127.0.0.1:4200/", "http://localhost:4200/" })).Start();
             http.get("/panel", "text/html", (queryparams)=>
             {
@@ -131,6 +133,6 @@ namespace TcpCho
                 return "";
             });
             
-        }
+        }*/
     }
 }

@@ -17,14 +17,25 @@ namespace TcpCho
         public Writer(Stream s) : base(s) { }
         public override void Write(string value)
         {
-            if (value.Length == 0)
+            if(value != null)
             {
-                this.Write(new byte[] { 0x00 });
-                return;
+                if (value.Length == 0)
+                {
+                    this.Write(new byte[] { 0x00 });
+                    return;
+                }
             }
+            
 
-            this.Write((byte)11);
-            base.Write(value);
+            try
+            {
+                this.Write((byte)11);
+                base.Write(value);
+            }
+            catch
+            {
+
+            }
         }
     }
     // https://github.com/Beyley/osu-b497-server/blob/master/osu-server/BanchoSerializer.cs#L6
@@ -69,7 +80,7 @@ namespace TcpCho
             NetworkStream stream;
             new Thread(CheckIfConnectionAlive).Start();
             new Thread(PingThread).Start();
-            new Thread(Webserver.Init).Start();
+            
             Console.ForegroundColor = ConsoleColor.Green; 
             while (true)
             {
@@ -161,63 +172,82 @@ namespace TcpCho
                     if( PacketID <= 76 )
                     {
                         string username = user.Username;
-                        Console.WriteLine($"Received packet {(RequestType)PacketID} sent by {username}");
-                        switch ((RequestType)PacketID)
+                        if(PacketID < 0)
                         {
-                            /*case RequestType.Osu_Exit:
-                                {
-                                    Console.WriteLine($"User {username} logged out");
-                                    user.Client.Close();
-                                    users.Remove(user);
-                                    
-                                    break;
-                                }*/ // this causes problems for some reason, gonna check it some day
-                            case RequestType.Osu_RequestStatusUpdate:
-                                {
+                            Console.WriteLine(sr.Read());
+                        } else
+                        {
+                            Console.WriteLine($"Received packet {(RequestType)PacketID} sent by {username}");
+                            switch ((RequestType)PacketID)
+                            {
+                                /*case RequestType.Osu_Exit:
+                                    {
+                                        Console.WriteLine($"User {username} logged out");
+                                        user.Client.Close();
+                                        users.Remove(user);
 
-                                    break;
-                                }
-                            case RequestType.Osu_SendUserStatus:
-                                {
-                                    bStatusUpdate stats = new bStatusUpdate(user.Stream);
-                                    Console.WriteLine(stats.beatmapChecksum);
-                                    Console.WriteLine(stats.currentMods);
-                                    Console.WriteLine(stats.playMode);
-                                    Console.WriteLine(stats.currentMods);
-                                    Console.WriteLine(stats.status);
-                                    Console.WriteLine(stats.statusText);
-                                    break;
-                                }
-                            case RequestType.Osu_SendIrcMessage:
-                                {
-                                    IrcMessage msg = new IrcMessage();
-                                    msg.ReadFromStream(user);
+                                        break;
+                                    }*/ // this causes problems for some reason, gonna check it some day
+                                case RequestType.Osu_RequestStatusUpdate:
+                                    {
 
-                                    Console.WriteLine(msg.author);
-                                    Console.WriteLine(msg.message);
-                                    Console.WriteLine(msg.receiver);
-                                    break;
-                                }
-                            case RequestType.Osu_MatchCreate:
-                                {
-                                    MemoryStream ms = new MemoryStream();
-                                    Writer writer = new Writer(ms);
-                                    bMatch match = new bMatch(ns);
-                                    Console.WriteLine(match.ToString());
-                                    match.WriteToStream(writer);
-                                    Packet.Write(user.Client, RequestType.Bancho_MatchNew, false, ms);
-                                    break;
-                                }
-                            case RequestType.Osu_ErrorReport:
-                                {
-                                    Console.WriteLine($"osu reported bug: {sr.ReadString()}");
-                                    break;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
+                                        break;
+                                    }
+                                case RequestType.Osu_SendUserStatus:
+                                    {
+                                        bStatusUpdate stats = new bStatusUpdate(user.Stream);
+                                        /*Console.WriteLine(stats.beatmapChecksum);
+                                        Console.WriteLine(stats.currentMods);
+                                        Console.WriteLine(stats.playMode);
+                                        Console.WriteLine(stats.currentMods);
+                                        Console.WriteLine(stats.status);
+                                        Console.WriteLine(stats.statusText);*/
+                                        break;
+                                    }
+                                case RequestType.Osu_SendIrcMessage:
+                                    {
+                                        /*IrcMessage msg = new IrcMessage(user.Stream);
+
+
+                                        Console.WriteLine(msg.sender);
+                                        Console.WriteLine(msg.message);
+                                        Console.WriteLine(msg.target);*/
+                                        break;
+                                    }
+                                case RequestType.Osu_MatchCreate:
+                                    {
+                                        MemoryStream ms = new MemoryStream();
+                                        Writer writer = new Writer(ms);
+                                        bMatch match = new bMatch(user.Stream);
+                                        Console.WriteLine(match.gameName);
+                                        Console.WriteLine(match.hostId);
+                                        Console.WriteLine(match.beatmapName);
+                                        //match.WriteToStream(writer);
+                                        Packet.Write(user.Client, RequestType.Bancho_MatchJoinSuccess, false, ms);
+                                        break;
+                                    }
+                                case RequestType.Osu_LobbyPart:
+                                    {
+                                        MemoryStream ms = new MemoryStream();
+                                        Writer writer = new Writer(ms);
+                                        writer.Write(user.UserStats.userId);
+                                        writer.Flush();
+                                        Packet.Write(user.Client, RequestType.Bancho_LobbyPart, false, ms);
+                                        break;
+                                    }
+                                case RequestType.Osu_ErrorReport:
+                                    {
+                                        Console.WriteLine($"osu reported bug: {sr.ReadString()}");
+                                        break;
+                                    }
+
+                                default:
+                                    {
+                                        break;
+                                    }
+                            }
                         }
+                        
                     } else
                     {
                        // Console.WriteLine(Packet.ReadStringFromStream(user.Client));

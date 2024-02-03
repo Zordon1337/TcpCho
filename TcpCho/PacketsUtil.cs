@@ -14,27 +14,46 @@ namespace TcpCho
 {
     class IrcMessage
     {
-        public IrcMessage(string author, string message, string receiver)
+        public bool isprivate
         {
-            this.author = author;
-            this.message = message; 
-            this.receiver = receiver;
+            get
+            {
+                return this.target.Length == 0 || this.target[0] != '#';
+            }
         }
-        public IrcMessage() {
-            this.author = "";
-            this.message = "";
-            this.receiver = "";
-        }
-        public void ReadFromStream(User user)
+
+        public IrcMessage(string sender, string target, string message)
         {
-            var r = new Reader(user.Stream);
-            this.author = r.ReadString();
-            this.message = r.ReadString();
-            this.receiver = r.ReadString();
+            this.sender = sender;
+            this.message = message;
+            this.target = target;
         }
-        public string author { get; set; }
-        public string message { get; set; }
-        public string receiver { get; set; }   
+
+        public IrcMessage(Stream s)
+        {
+            Reader sr = new Reader(s);
+            this.sender = sr.ReadString();
+            this.message = sr.ReadString();
+            this.target = sr.ReadString();
+        }
+
+        public void ReadFromStream(Reader sr)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteToStream(Writer sw)
+        {
+            sw.Write(this.sender);
+            sw.Write(this.message);
+            sw.Write(this.target);
+        }
+
+        public string sender;
+
+        public string message;
+
+        public string target;
     }
     class PacketsUtil
     {
@@ -124,7 +143,7 @@ namespace TcpCho
         public int GetPacketID(NetworkStream ns)
         {
             BinaryReader br = new BinaryReader(ns);
-
+            Thread.Sleep(100); // avoiding StackOverFlow(not the website)
             try
             {
                 return br.ReadInt16();
